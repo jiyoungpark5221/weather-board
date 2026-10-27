@@ -3,20 +3,30 @@
 let tasks = [];
 let weatherByRegion = {};   // 03 단원에서 지역별 날씨를 넣음
 
-// 기본 일정은 data/tasks.json 을 먼저 읽고, 화면에서 추가한 일정(localStorage)을 뒤에 붙임
+// Supabase 연결 (config.js 의 주소 · 공개용 키가 비어 있으면 null)
+let sbClient = null;
+function getClient() {
+  if (!sbClient && SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+  return sbClient;
+}
+
+// 일정은 Supabase 표 wx_tasks 에서 읽음 (실패해도 화면은 그대로, 안내만 표시)
 async function loadTasks() {
   const msg = document.getElementById('dataMsg');
-  let base = [];
   try {
-    const res = await fetch('data/tasks.json');
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    base = await res.json();
+    const sb = getClient();
+    if (!sb) throw new Error('연결 정보 없음');
+    const { data, error } = await sb.from('wx_tasks')
+      .select('title, region, kind, owner').order('id');
+    if (error) throw error;
+    tasks = data;
     msg.textContent = '';
   } catch (err) {
-    msg.textContent = '배포주소로 열어주세요';
+    tasks = [];
+    msg.textContent = '일정을 불러오지 못했습니다';
   }
-  const saved = JSON.parse(localStorage.getItem('wx_added') || '[]');
-  tasks = base.concat(saved);
 }
 
 function weatherText(w) {
@@ -52,9 +62,12 @@ async function addTask(e) {
     owner: document.getElementById('ownerInput').value.trim(),
   };
   if (!t.title || !t.owner) return;
-  const saved = JSON.parse(localStorage.getItem('wx_added') || '[]');
-  saved.push(t);
-  localStorage.setItem('wx_added', JSON.stringify(saved));
+  const msgBox = document.getElementById('msgBox');
+  const sb = getClient();
+  if (!sb) { msgBox.textContent = '저장하지 못했습니다: 연결 정보가 없습니다'; return; }
+  const { error } = await sb.from('wx_tasks').insert(t);
+  if (error) { msgBox.textContent = '저장하지 못했습니다: ' + error.message; return; }
+  msgBox.textContent = '';
   e.target.reset();
   await loadTasks();
   renderTasks();

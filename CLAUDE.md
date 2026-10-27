@@ -7,13 +7,15 @@
 ## 기술 스택 (변경 금지)
 - HTML + CSS + 순수 JavaScript만 사용한다. (React 등 프레임워크, 빌드 도구 사용 금지)
 - index.html 을 더블클릭해서 열 수 있어야 한다.
+- 외부 스크립트는 supabase-js 하나만 쓴다. (버전을 고정한 CDN 주소)
 
 ## 폴더 구조
 - index.html : 화면 구조
 - style.css  : 디자인
 - logic.js   : 판단 규칙만 (화면을 다루는 코드 금지)
 - app.js     : 화면 동작 (목록 그리기, 일정 추가)
-- data/tasks.json : 기본 일정 목록 (가상 데이터)
+- config.js  : Supabase 연결 정보 두 줄 (주소 · 공개용 키)
+- setup.sql  : Supabase 표(wx_tasks) 만들기 · 규칙 (사용자가 SQL Editor 에서 직접 실행)
 - PRD.md · CLAUDE.md · README.md : 문서
 
 ## 작업 방식
@@ -23,6 +25,9 @@
 
 ## 보안 · 데이터 규칙
 - 가상 데이터만 사용한다. 실제 이름 · 연락처 · 기관 내부 자료를 넣지 않는다.
-- 기본 일정은 data/tasks.json 에만 두고 코드에 직접 쓰지 않는다. 화면에서 추가한 일정만 브라우저(localStorage)에 따로 저장한다. 읽기에 실패하면 '배포주소로 열어주세요'를 화면에 보여 준다.
+- 일정은 Supabase 표 wx_tasks 에서 읽고, 추가한 일정도 그 표에 저장한다. 코드에 일정을 직접 쓰지 않는다. 읽기에 실패하면 '일정을 불러오지 못했습니다'를 화면에 보여 준다.
+- 구분(야외 · 고소 · 실내)과 지역(세종 · 대전 · 태안 · 보령) 값 규칙은 화면과 DB(setup.sql 의 check 제약) 양쪽에서 막는다.
+- Supabase 에는 공개용 키(anon)만 쓴다. 비밀 키(service_role)는 어디에도 넣지 않는다. 표는 RLS 로 읽기 · 추가만 허용한다.
+- 연결 정보는 config.js 두 줄(주소 · 공개용 키)만 둔다.
 - 사용자가 입력한 글자는 textContent 로 표시한다.
 - 비밀 키는 코드 · 채팅 · GitHub 에 넣지 않는다.
