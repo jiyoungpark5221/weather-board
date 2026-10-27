@@ -59,6 +59,28 @@ function addTask(e) {
   renderTasks();
 }
 
+// 지역별 오늘 날씨 받기 (실패해도 일정 목록은 그대로 보임)
+async function loadWeather() {
+  const box = document.getElementById('weatherBox');
+  const test = new URLSearchParams(location.search).get('test');
+  box.textContent = '날씨를 불러오는 중...';
+  let failed = 0;
+  await Promise.all(Object.keys(REGION_COORDS).map(async (region) => {
+    try {
+      const res = await fetch(buildWeatherUrl(region));
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const w = parseWeather(await res.json(), test);
+      if (!w) throw new Error('응답 형식 오류');
+      weatherByRegion[region] = w;
+    } catch (err) {
+      failed++;
+    }
+  }));
+  renderTasks();
+  if (failed === 0) box.textContent = '오늘 날씨를 받았습니다 (Open-Meteo)' + (test === 'wind' ? ' · 시험 모드: 풍속 12 m/s' : '');
+  else box.textContent = '날씨를 불러오지 못한 지역이 ' + failed + '곳 있습니다. 해당 일정은 "날씨 확인 전"으로 표시됩니다.';
+}
+
 // 오늘 날짜(PC 기준, YYYY-MM-DD)
 function showToday() {
   const d = new Date();
@@ -71,3 +93,4 @@ document.getElementById('taskForm').addEventListener('submit', addTask);
 showToday();
 loadTasks();
 renderTasks();
+loadWeather();
