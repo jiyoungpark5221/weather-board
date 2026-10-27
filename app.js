@@ -83,14 +83,33 @@ async function loadWeather() {
 }
 
 // 오늘 날짜(PC 기준, YYYY-MM-DD)
-function showToday() {
+function todayString() {
   const d = new Date();
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
-  document.getElementById('todayDate').textContent = d.getFullYear() + '-' + mm + '-' + dd;
+  return d.getFullYear() + '-' + mm + '-' + dd;
+}
+
+function showToday() {
+  document.getElementById('todayDate').textContent = todayString();
+}
+
+// 오늘 판단을 md 파일로 내려받기
+function saveMarkdown() {
+  const date = todayString();
+  const md = buildMarkdown(tasks, weatherByRegion, date);
+  const url = URL.createObjectURL(new Blob([md], { type: 'text/markdown;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '현장일정_판단_' + date + '.md';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 document.getElementById('taskForm').addEventListener('submit', addTask);
+document.getElementById('saveMdBtn').addEventListener('click', saveMarkdown);
 showToday();
 loadTasks().then(() => {
   renderTasks();
