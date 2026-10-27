@@ -14,6 +14,7 @@
 - style.css  : 디자인
 - logic.js   : 판단 규칙만 (화면을 다루는 코드 금지)
 - app.js     : 화면 동작 (목록 그리기, 일정 추가)
+- api/kma.js : Vercel 서버 함수 (/api/kma?region=지역 → 일정 · 날씨 · 판단 JSON). 서버 함수는 api/ 안에만 둔다.
 - config.js  : Supabase 연결 정보 두 줄 (주소 · 공개용 키)
 - setup.sql  : Supabase 표(wx_tasks) 만들기 · 규칙 (사용자가 SQL Editor 에서 직접 실행)
 - PRD.md · CLAUDE.md · README.md : 문서
@@ -29,5 +30,6 @@
 - 구분(야외 · 고소 · 실내)과 지역(세종 · 대전 · 태안 · 보령) 값 규칙은 화면과 DB(setup.sql 의 check 제약) 양쪽에서 막는다.
 - Supabase 에는 공개용 키(anon)만 쓴다. 비밀 키(service_role)는 어디에도 넣지 않는다. 표는 RLS 로 읽기 · 추가만 허용한다.
 - 연결 정보는 config.js 두 줄(주소 · 공개용 키)만 둔다.
+- 서버 함수(api/kma.js)의 키는 Vercel 환경변수로만 쓴다: KMA_KEY(기상청), SUPABASE_URL · SUPABASE_ANON_KEY(공개용). 키 값은 코드 · 응답 · 오류 메시지 · 로그 · 채팅 · GitHub 어디에도 내보내지 않는다. 서버에서도 패키지를 새로 설치하지 않고 fetch 만 쓴다.
 - 사용자가 입력한 글자는 textContent 로 표시한다.
 - 비밀 키는 코드 · 채팅 · GitHub 에 넣지 않는다.
