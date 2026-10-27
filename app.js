@@ -59,6 +59,15 @@ function addTask(e) {
   renderTasks();
 }
 
+// 오늘 날짜(PC 기준, YYYY-MM-DD)
+function showToday() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  document.getElementById('todayDate').textContent = d.getFullYear() + '-' + mm + '-' + dd;
+}
+
 document.getElementById('taskForm').addEventListener('submit', addTask);
+showToday();
 loadTasks();
 renderTasks();
